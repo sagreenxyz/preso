@@ -21,6 +21,8 @@
       --text-muted: #6b7280;
       --progress-height: 4px;
       --transition-reveal: 320ms ease;
+      --highlight-yellow: #fef08a;
+      --highlight-yellow-bg: rgba(254, 240, 138, 0.65);
     }
 
     html, body {
@@ -217,6 +219,20 @@
       font-style: italic;
       font-size: 0.72rem;
       color: var(--text-muted);
+    }
+
+    /* ── Center-highlight: element nearest screen vertical center ── */
+    .center-highlight {
+      background-color: var(--highlight-yellow-bg);
+      border-radius: 4px;
+      transition: background-color 250ms ease;
+    }
+
+    .outline-entry.center-active {
+      background: var(--highlight-yellow);
+      color: #713f12;
+      border-left-color: #ca8a04;
+      font-weight: 700;
     }
 
     /* ── Responsive guard (hide right pane on narrow) ─────── */
@@ -520,6 +536,45 @@
 
     // ── 6. Initial active update ────────────────────────────
     updateActive();
+
+    // ── 7. Center-highlight: outline entry nearest screen vertical center ──
+    let centerEntry = null;
+
+    function updateCenterHighlight() {
+      const screenMidY = window.innerHeight / 2;
+
+      const allEntries = Array.from(outlineEl.querySelectorAll('.outline-entry.revealed'));
+      if (!allEntries.length) return;
+
+      // Find the revealed entry whose center is closest to the screen's vertical midpoint
+      const closest = allEntries.reduce((best, entry) => {
+        const rect = entry.getBoundingClientRect();
+        const dist = Math.abs(rect.top + rect.height / 2 - screenMidY);
+        return dist < best.dist ? { entry, dist } : best;
+      }, { entry: null, dist: Infinity }).entry;
+
+      if (closest === centerEntry) return;
+
+      // Remove previous highlights
+      if (centerEntry) {
+        centerEntry.classList.remove('center-active');
+        const oldTarget = document.getElementById(centerEntry.dataset.targetId);
+        if (oldTarget) oldTarget.classList.remove('center-highlight');
+      }
+
+      // Apply new highlights
+      centerEntry = closest;
+      if (centerEntry) {
+        centerEntry.classList.add('center-active');
+        const target = document.getElementById(centerEntry.dataset.targetId);
+        if (target) target.classList.add('center-highlight');
+      }
+    }
+
+    leftPane.addEventListener('scroll', updateCenterHighlight, { passive: true });
+    window.addEventListener('resize', updateCenterHighlight);
+    // Run after layout is ready so getBoundingClientRect values are correct
+    requestAnimationFrame(() => requestAnimationFrame(updateCenterHighlight));
   })();
 </script>
 
