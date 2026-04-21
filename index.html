@@ -365,15 +365,14 @@
 
     // Build an ordered list of all content nodes with position info
     // so we can find each strong's nearest preceding heading.
-    const allHeadingNodes = headings.slice(); // ordered as they appear in DOM
 
     strongEls.forEach((strong, idx) => {
       if (!strong.id) strong.id = 'strong-' + idx;
 
       // Find the nearest heading that appears before this <strong> in DOM order
       let parentHeading = null;
-      for (let i = allHeadingNodes.length - 1; i >= 0; i--) {
-        const h = allHeadingNodes[i];
+      for (let i = headings.length - 1; i >= 0; i--) {
+        const h = headings[i];
         // DOCUMENT_POSITION_PRECEDING (bit 2): h appears before strong in the DOM
         if (strong.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_PRECEDING) {
           parentHeading = h;
